@@ -1,0 +1,1 @@
+/usr/bin/c++ -g CMakeFiles/testLLM.dir/testLLM.cpp.o "CMakeFiles/testLLM.dir/home/ubuntu/workspace/AI-SDK/sdk/src/util/myLog.cpp.o" "CMakeFiles/testLLM.dir/home/ubuntu/workspace/AI-SDK/sdk/src/DeepSeekProvider.cpp.o" -o testLLM  -ljsoncpp -lfmt -lspdlog -lgtest /usr/lib/x86_64-linux-gnu/libssl.so /usr/lib/x86_64-linux-gnu/libcrypto.so -lsqlite3 

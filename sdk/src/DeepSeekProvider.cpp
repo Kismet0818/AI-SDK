@@ -291,8 +291,4 @@ namespace ai_chat_sdk{
 
         return fullResponse;
     }
-
-
-
-
-}
+} // end ai_chat_sdk

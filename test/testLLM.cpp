@@ -28,8 +28,17 @@ TEST(DeepSeekProviderTest, sendMessage){
 
     // 实例化DeepSeekProvider的对象
     // 调用sendMessage方法
-    std::string response = provider->sendMessage(messages, requestParam);
-    ASSERT_FALSE(response.empty());
+    //std::string response = provider->sendMessage(messages, requestParam);
+
+    auto writeChunk = [&](const std::string& chunk, bool last){ 
+        INFO("chunk : {}", chunk);
+        if(last){
+            INFO("[DONE]"); 
+        } 
+    };
+    std::string fullData = provider->sendMessageStream(messages, requestParam, writeChunk);
+    ASSERT_FALSE(fullData.empty());
+    INFO("response : {}", fullData);
 }
 
 int main(int argc, char **argv) {

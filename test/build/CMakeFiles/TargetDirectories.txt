@@ -1,3 +1,0 @@
-/home/ubuntu/workspace/AI-SDK/test/build/CMakeFiles/testLLM.dir
-/home/ubuntu/workspace/AI-SDK/test/build/CMakeFiles/edit_cache.dir
-/home/ubuntu/workspace/AI-SDK/test/build/CMakeFiles/rebuild_cache.dir

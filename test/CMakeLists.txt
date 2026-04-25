@@ -15,6 +15,8 @@ set(CMAKE_BUILD_TYPE Debug)
 add_executable(testLLM testLLM.cpp
 ../sdk/src/util/myLog.cpp
 ../sdk/src/DeepSeekProvider.cpp
+../sdk/src/DouBaoProvider.cpp
+../sdk/src/QWenProvider.cpp
 )
 
 # 设置输出目录

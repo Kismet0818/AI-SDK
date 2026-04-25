@@ -5,6 +5,7 @@
 
 #include "../sdk/include/DeepSeekProvider.h"
 #include "../sdk/include/DouBaoProvider.h"
+#include "../sdk/include/QWenProvider.h"
 
 #include "../sdk/include/util/myLog.h"
 
@@ -18,14 +19,22 @@
 
 /*
 TEST(DeepSeekProviderTest, sendMessage){
-    auto provider = std::make_shared<ai_chat_sdk::DeepSeekProvider>();
+
+    auto provider =
+        std::make_shared<ai_chat_sdk::DeepSeekProvider>();
+
     ASSERT_TRUE(provider != nullptr);
 
     std::map<std::string, std::string> modelParam;
-    modelParam["api_key"] = std::getenv("deepseek_apikey");
-    modelParam["endpoint"] = "https://api.deepseek.com";
+
+    modelParam["api_key"] =
+        std::getenv("deepseek_apikey");
+
+    modelParam["endpoint"] =
+        "https://api.deepseek.com";
 
     provider->initModel(modelParam);
+
     ASSERT_TRUE(provider->isAvailable());
 
     std::map<std::string, std::string> requestParam = {
@@ -34,10 +43,14 @@ TEST(DeepSeekProviderTest, sendMessage){
     };
 
     std::vector<ai_chat_sdk::Message> messages;
+
     messages.push_back({"user", "你是谁？"});
 
-    auto writeChunk = [&](const std::string& chunk, bool last){
+    auto writeChunk =
+        [&](const std::string& chunk, bool last){
+
         INFO("chunk : {}", chunk);
+
         if(last){
             INFO("[DONE]");
         }
@@ -57,9 +70,10 @@ TEST(DeepSeekProviderTest, sendMessage){
 */
 
 //////////////////////////////////////////////////////////////
-// DouBao 测试
+// DouBao 测试（保留原代码，直接注释）
 //////////////////////////////////////////////////////////////
 
+/*
 TEST(DouBaoProviderTest, sendMessage){
 
     auto provider =
@@ -77,6 +91,64 @@ TEST(DouBaoProviderTest, sendMessage){
 
     modelParam["model"] =
         "Doubao-Seed-2.0-mini";
+
+    provider->initModel(modelParam);
+
+    ASSERT_TRUE(provider->isAvailable());
+
+    std::map<std::string, std::string> requestParam = {
+        {"temperature", "0.7"},
+        {"max_tokens", "2048"}
+    };
+
+    std::vector<ai_chat_sdk::Message> messages;
+
+    messages.push_back({"user", "你是谁？"});
+
+    auto writeChunk =
+        [&](const std::string& chunk, bool last){
+
+        INFO("chunk : {}", chunk);
+
+        if(last){
+            INFO("[DONE]");
+        }
+    };
+
+    std::string fullData =
+        provider->sendMessageStream(
+            messages,
+            requestParam,
+            writeChunk
+        );
+
+    ASSERT_FALSE(fullData.empty());
+
+    INFO("response : {}", fullData);
+}
+*/
+
+//////////////////////////////////////////////////////////////
+// QWen 测试
+//////////////////////////////////////////////////////////////
+
+TEST(QWenProviderTest, sendMessage){
+
+    auto provider =
+        std::make_shared<ai_chat_sdk::QWenProvider>();
+
+    ASSERT_TRUE(provider != nullptr);
+
+    std::map<std::string, std::string> modelParam;
+
+    modelParam["api_key"] =
+        std::getenv("qwen_apikey");
+
+    modelParam["endpoint"] =
+        "https://dashscope.aliyuncs.com";
+
+    modelParam["model"] =
+        "qwen-turbo";
 
     provider->initModel(modelParam);
 

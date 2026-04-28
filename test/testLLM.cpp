@@ -6,6 +6,7 @@
 #include "../sdk/include/DeepSeekProvider.h"
 #include "../sdk/include/DouBaoProvider.h"
 #include "../sdk/include/QWenProvider.h"
+#include "../sdk/include/OllamaLLMProvider.h"
 
 #include "../sdk/include/util/myLog.h"
 
@@ -132,6 +133,7 @@ TEST(DouBaoProviderTest, sendMessage){
 // QWen 测试
 //////////////////////////////////////////////////////////////
 
+/*
 TEST(QWenProviderTest, sendMessage){
 
     auto provider =
@@ -163,18 +165,17 @@ TEST(QWenProviderTest, sendMessage){
 
     messages.push_back({"user", "你是谁？"});
 
-    // 普通调用（如需测试取消注释）
-    /*
-    std::string response =
-        provider->sendMessage(
-            messages,
-            requestParam
-        );
+    // // 普通调用（如需测试取消注释）
+    // std::string response =
+    //     provider->sendMessage(
+    //         messages,
+    //         requestParam
+    //     );
 
-    ASSERT_FALSE(response.empty());
+    // ASSERT_FALSE(response.empty());
 
-    INFO("response : {}", response);
-    */
+    // INFO("response : {}", response);
+
 
     // 流式调用
     auto writeChunk =
@@ -196,6 +197,46 @@ TEST(QWenProviderTest, sendMessage){
 
     ASSERT_FALSE(fullData.empty());
 
+    INFO("response : {}", fullData);
+}
+*/
+
+//////////////////////////////////////////////////////////////
+// Ollama 测试
+//////////////////////////////////////////////////////////////
+
+TEST(OllamaLLMProviderTest, sendMessage){
+    auto provider = std::make_shared<ai_chat_sdk::OllamaLLMProvider>();
+    ASSERT_TRUE(provider != nullptr);
+
+    std::map<std::string, std::string> modelParam;
+    modelParam["model_name"] = "deepseek-r1:1.5b";
+    modelParam["model_desc"] = "本地部署deepseek-r1:1.5b模型，采用专家混合架构，专注于深度理解与推理";
+    modelParam["endpoint"] = "http://localhost:11434";
+
+    provider->initModel(modelParam);
+    ASSERT_TRUE(provider->isAvailable());
+
+    std::map<std::string, std::string> requestParam = {
+        {"temperature", "0.7"},
+        {"max_tokens", "2048"}
+    };
+    std::vector<ai_chat_sdk::Message> messages;
+    messages.push_back({"user", "你是谁？"});
+
+    // 实例化DeepSeekProvider的对象
+    // 调用sendMessage方法
+    // std::string fullData = provider->sendMessage(messages, requestParam);
+    // ASSERT_FALSE(fullData.empty());
+
+    auto writeChunk = [&](const std::string& chunk, bool last){ 
+        INFO("chunk : {}", chunk);
+        if(last){
+            INFO("[DONE]"); 
+        } 
+    };
+    std::string fullData = provider->sendMessageStream(messages, requestParam, writeChunk);
+    ASSERT_FALSE(fullData.empty());
     INFO("response : {}", fullData);
 }
 

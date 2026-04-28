@@ -17,6 +17,7 @@ add_executable(testLLM testLLM.cpp
 ../sdk/src/DeepSeekProvider.cpp
 ../sdk/src/DouBaoProvider.cpp
 ../sdk/src/QWenProvider.cpp
+../sdk/src/OllamaLLMProvider.cpp
 )
 
 # 设置输出目录

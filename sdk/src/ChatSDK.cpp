@@ -1,7 +1,7 @@
 #include "../include/ChatSDK.h"
 #include "../include/DeepSeekProvider.h"
-#include "../include/ChatGPTProvider.h"
-#include "../include/GeminiProvider.h"
+#include "../include/DouBaoProvider.h"
+#include "../include/QWenProvider.h"
 #include "../include/OllamaLLMProvider.h"
 #include "../include/util/myLog.h"
 #include <memory>
@@ -35,27 +35,38 @@ void ChatSDK::registerAllProvider(const std::vector<std::shared_ptr<Config>>& co
         INFO("deepseek-chat provider registered successed");
     }
 
-    // gpt-4o-mini
-    if(!_llmManager.isModelAvailable("gpt-4o-mini")){
-        auto gpt4oProvider = std::make_unique<ChatGPTProvider>();
+    // doubao-seed-2-0-mini-260215
+    if(!_llmManager.isModelAvailable("doubao-seed-2-0-mini-260215")){
+        auto doubaoProvider = std::make_unique<DouBaoProvider>();
 
         // unuqe_ptr不允许自动类型转换，即使类型之间存在继承关系
-        _llmManager.registerProvider("gpt-4o-mini", std::move(gpt4oProvider));
-        INFO("gpt-4o-mini provider registered successed");
+        _llmManager.registerProvider("doubao-seed-2-0-mini-260215", std::move(doubaoProvider));
+        INFO("doubao-seed-2-0-mini-260215 provider registered successed");
     }
 
-    // gemini-2.0-flash
-    if(!_llmManager.isModelAvailable("gemini-2.0-flash")){
-        auto geminiProvider = std::make_unique<GeminiProvider>();
+    // qwen-plus
+    if(!_llmManager.isModelAvailable("qwen-plus")){
+        auto qwenPlusProvider = std::make_unique<QWenProvider>();
 
         // unuqe_ptr不允许自动类型转换，即使类型之间存在继承关系
-        _llmManager.registerProvider("gemini-2.0-flash", std::move(geminiProvider));
-        INFO("gemini-2.0-flash provider registered successed");
+        _llmManager.registerProvider("qwen-plus", std::move(qwenPlusProvider));
+        INFO("qwen-plus provider registered successed");
     }
 
     // Ollama接入本地模型---模型信息通过用户传递 configs
     std::unordered_set<std::string> modelNames;
     for(const auto& config : configs){
+        // 处理 APIConfig 中的动态模型 ID (如豆包的 ep- 接入点)
+        if (auto apiConfig = std::dynamic_pointer_cast<APIConfig>(config)) {
+            std::string modelName = apiConfig->_modelName;
+            if (modelName.find("ep-") == 0) { // 豆包的推理接入点 ID 通常以 ep- 开头
+                if (!_llmManager.isModelAvailable(modelName)) {
+                    _llmManager.registerProvider(modelName, std::make_unique<DouBaoProvider>());
+                    INFO("DouBaoProvider for endpoint {} registered successed", modelName);
+                }
+            }
+        }
+
         // config是不是OllamaConfig的一个对象呢
         auto ollamaConfig = std::dynamic_pointer_cast<OllamaConfig>(config);
         if(ollamaConfig){
@@ -79,8 +90,9 @@ void ChatSDK::initProviders(const std::vector<std::shared_ptr<Config>>& configs)
     for(const auto& config : configs){
         if(auto apiConfig = std::dynamic_pointer_cast<APIConfig>(config)){
             if(apiConfig->_modelName == "deepseek-chat" || 
-               apiConfig->_modelName == "gpt-4o-mini" ||
-               apiConfig->_modelName == "gemini-2.0-flash"){
+               apiConfig->_modelName == "doubao-seed-2-0-mini-260215" ||
+               apiConfig->_modelName == "qwen-plus" ||
+               apiConfig->_modelName.find("ep-") == 0){ // 允许豆包的 ep- 接入点
                  // 支持的云端模型
                  initAPIModelProviders(apiConfig->_modelName, apiConfig);
             }else{
@@ -117,6 +129,7 @@ bool ChatSDK::initAPIModelProviders(const std::string& modelName, const std::sha
     // 初始化模型
     std::map<std::string, std::string> modelParams;
     modelParams["api_key"] = apiConfig->_apiKey;
+    modelParams["model"] = apiConfig->_modelName;
     if(!_llmManager.initModel(modelName, modelParams)){
         ERR("ChatSDK::initAPIModelProviders: init model {} failed", modelName);
         return false;

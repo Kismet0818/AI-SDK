@@ -26,10 +26,18 @@ namespace ai_chat_sdk{
             _endpoint = it->second;
         }
 
+        // 初始化Model Name (Endpoint ID)
+        it = modelConfig.find("model");
+        if(it == modelConfig.end()){
+            _modelName = "doubao-seed-2-0-mini-260215";
+        }else{
+            _modelName = it->second;
+        }
+
         _isAvailable = true;
 
-        INFO("DouBaoProvider initModel success, endpoint: {}",
-             _endpoint);
+        INFO("DouBaoProvider initModel success, endpoint: {}, model: {}",
+             _endpoint, _modelName);
 
         return true;
     }
@@ -41,7 +49,7 @@ namespace ai_chat_sdk{
 
     // 获取模型名称
     std::string DouBaoProvider::getModelName() const{
-        return "doubao-seed-2-0-mini-260215";
+        return _modelName;
     }
 
     // 获取模型的描述信息
@@ -91,7 +99,8 @@ namespace ai_chat_sdk{
 
         // 4. 序列化
         Json::StreamWriterBuilder writerBuilder;
-        writerBuilder["indentation"] = "";
+        writerBuilder["indentation"] = ""; 
+        writerBuilder["emitUTF8"] = true;
 
         std::string requestBodyStr =
             Json::writeString(writerBuilder, requestBody);
@@ -104,10 +113,9 @@ namespace ai_chat_sdk{
         client.set_connection_timeout(30, 0);
         client.set_read_timeout(60, 0);
 
-        // 设置请求头
+        // 设置请求头 (不要手动设置 Content-Type，让 httplib 通过 Post 参数设置)
         httplib::Headers headers = {
-            {"Authorization", "Bearer " + _apiKey},
-            {"Content-Type", "application/json"}
+            {"Authorization", "Bearer " + _apiKey}
         };
 
         // 6. 发送POST请求
@@ -123,16 +131,15 @@ namespace ai_chat_sdk{
             return "";
         }
 
-        INFO("DouBaoProvider sendMessage success, status:{}",
-             response->status);
-
-        INFO("DouBaoProvider sendMessage body:{}",
-             response->body);
-
         // 检测响应是否成功
         if(response->status != 200){
+            ERR("DouBaoProvider sendMessage failed, status: {}, body: {}",
+                response->status, response->body);
             return "";
         }
+
+        INFO("DouBaoProvider sendMessage success, status:{}",
+             response->status);
 
         // 7. 解析响应体
         Json::Value responseBody;
@@ -216,11 +223,12 @@ namespace ai_chat_sdk{
         // 4. 序列化
         Json::StreamWriterBuilder writerBuilder;
         writerBuilder["indentation"] = "";
+        writerBuilder["emitUTF8"] = true;
 
         std::string requestBodyStr =
             Json::writeString(writerBuilder, requestBody);
 
-        INFO("DouBaoProvider sendMessageStream requestBody:{}",
+        INFO("DouBaoProvider sendMessageStream requestBody: {}",
              requestBodyStr);
 
         // 5. 使用cpp-httplib库构造HTTP客户端
@@ -228,10 +236,9 @@ namespace ai_chat_sdk{
         client.set_connection_timeout(30, 0);
         client.set_read_timeout(300, 0);
 
-        // 设置请求头
+        // 设置请求头 (不要手动设置 Content-Type，让 httplib 通过 Post 参数设置)
         httplib::Headers headers = {
             {"Authorization", "Bearer " + _apiKey},
-            {"Content-Type", "application/json"},
             {"Accept", "text/event-stream"}
         };
 

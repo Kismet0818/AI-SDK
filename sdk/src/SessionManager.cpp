@@ -124,16 +124,14 @@ bool SessionManager::addMessage(const std::string& sessionId, const Message& mes
 
 // 获取某个会话的所有历史消息
 std::vector<Message> SessionManager::getHistroyMessages(const std::string& sessionId)const{
-    // 先从内存中获取会话消息，如果内存中获取不到，再到数据库中获取
     _mutex.lock();
     auto it = _sessions.find(sessionId);
     if(it != _sessions.end()){
+        auto messages = it->second->_messages;
         _mutex.unlock();
-        return it->second->_messages;
+        return messages;
     }
     _mutex.unlock();
-
-    // 从数据库中获取消息列表
     return _dataManager.getSessionMessages(sessionId);
 }
 

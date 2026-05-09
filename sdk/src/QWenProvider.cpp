@@ -26,10 +26,18 @@ namespace ai_chat_sdk{
             _endpoint = it->second;
         }
 
+        // 初始化Model Name
+        it = modelConfig.find("model");
+        if(it == modelConfig.end()){
+            _modelName = "qwen-plus";
+        }else{
+            _modelName = it->second;
+        }
+
         _isAvailable = true;
 
-        INFO("QWenProvider initModel success, endpoint: {}",
-             _endpoint);
+        INFO("QWenProvider initModel success, endpoint: {}, model: {}",
+             _endpoint, _modelName);
 
         return true;
     }
@@ -41,7 +49,7 @@ namespace ai_chat_sdk{
 
     // 获取模型名称
     std::string QWenProvider::getModelName() const{
-        return "qwen-plus";
+        return _modelName;
     }
 
     // 获取模型的描述信息

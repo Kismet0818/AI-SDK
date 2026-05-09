@@ -18,6 +18,10 @@ add_executable(testLLM testLLM.cpp
 ../sdk/src/DouBaoProvider.cpp
 ../sdk/src/QWenProvider.cpp
 ../sdk/src/OllamaLLMProvider.cpp
+../sdk/src/DataManager.cpp
+../sdk/src/SessionManager.cpp
+../sdk/src/LLMManager.cpp
+../sdk/src/ChatSDK.cpp
 )
 
 # 设置输出目录

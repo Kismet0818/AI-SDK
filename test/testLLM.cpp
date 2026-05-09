@@ -249,7 +249,7 @@ TEST(ChatSDKTest, sendMessage){
     auto sdk = std::make_shared<ai_chat_sdk::ChatSDK>();
     ASSERT_TRUE(sdk != nullptr);
 
-    // 配置支持的模型参数：云模型-deepseek-chat gpt-4o-mini gemini-2.0-flash   Ollama本地接入deepseek-r1:1.5b
+    // 配置支持的模型参数：云模型-deepseek-chat doubao-seed-2-0-mini-260215 qwen-plus   Ollama本地接入deepseek-r1:1.5b
     // deepseek-chat
     auto deepseekConfig = std::make_shared<ai_chat_sdk::APIConfig>();
     ASSERT_TRUE(deepseekConfig != nullptr);

@@ -68,8 +68,10 @@ std::shared_ptr<Session> SessionManager::getSession(const std::string& sessionId
     auto it = _sessions.find(sessionId);
     if(it != _sessions.end()){
         _mutex.unlock();
-        // 获取当前会话的历史消息
-        it->second->_messages = _dataManager.getSessionMessages(sessionId);
+        // 只有当内存中的消息为空且数据库中可能有消息时，才从数据库同步
+        if(it->second->_messages.empty()){
+            it->second->_messages = _dataManager.getSessionMessages(sessionId);
+        }
         return it->second;
     }
     _mutex.unlock();
@@ -78,15 +80,16 @@ std::shared_ptr<Session> SessionManager::getSession(const std::string& sessionId
     auto session = _dataManager.getSession(sessionId);
     if(session){
         _mutex.lock();
+        // 双重检查，防止并发创建
         auto it = _sessions.find(sessionId);
         if(it == _sessions.end()){
-            // 内存中没有找到，将会话添加到会话列表
             _sessions[sessionId] = session;
+            // 只有当内存中没有该会话时，才从数据库加载消息
+            session->_messages = _dataManager.getSessionMessages(sessionId);
+        }else{
+            session = it->second;
         }
         _mutex.unlock();
-
-        // 获取当前会话的历史消息
-        session->_messages = _dataManager.getSessionMessages(sessionId);
         return session;
     }
 

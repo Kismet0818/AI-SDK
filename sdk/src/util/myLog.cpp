@@ -24,6 +24,8 @@ namespace bite{
                 if("stdout" == loggerFile){
                     // 创建一个带颜色的输出到控制台的日志器
                     _logger = spdlog::stdout_color_mt(loggerName);
+                    // 控制台输出建议开启自动刷新
+                    _logger->flush_on(spdlog::level::info);
                 }else{
                     // 创建一个文件输出的日志器，日志会被写入到指定的文件中
                     _logger = spdlog::basic_logger_mt<spdlog::async_factory>(loggerName, loggerFile);

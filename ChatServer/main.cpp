@@ -13,7 +13,7 @@
 
 // 定义gflags参数
 DEFINE_string(host, "0.0.0.0", "服务器绑定的地址");
-DEFINE_int32(port, 8080, "服务器绑定的端口号");
+DEFINE_int32(port, 8081, "服务器绑定的端口号");
 DEFINE_string(log_level, "INFO", "日志级别");
 DEFINE_double(temperature, 0.7, "温度值，影响生成文本的随机性");
 DEFINE_int32(max_tokens, 2048, "最大token数");

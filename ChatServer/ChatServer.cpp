@@ -77,13 +77,24 @@ bool ChatServer::start(){
     _chatServer->set_mount_point("/", "./www");
 
     // 为了不卡服务器云不卡主线程，服务器在单独的线程中运行
+    _isRunning.store(true);
     std::thread serverThread([this](){
-        _chatServer->listen(_config.host, _config.port);
-        INFO("ChatServer start on {} :{}", _config.host, _config.port);
+        INFO("ChatServer is listening on {}:{}", _config.host, _config.port);
+        if (!_chatServer->listen(_config.host, _config.port)) {
+            ERR("ChatServer failed to listen on {}:{}", _config.host, _config.port);
+            _isRunning.store(false);
+        }
     });
 
     serverThread.detach();
-    _isRunning.store(true);
+    
+    // 给一点时间让 listen 运行起来
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    
+    if (!_isRunning.load()) {
+        return false;
+    }
+
     INFO("ChatServer start success!!!");
     return true;
 }

@@ -29,9 +29,13 @@ namespace ai_chat_sdk{
         // 初始化Model Name (Endpoint ID)
         it = modelConfig.find("model");
         if(it == modelConfig.end()){
-            _modelName = "doubao-seed-2-0-mini-260215";
+            _modelName = "ep-20260503144004-mgrgn"; // 默认使用 Endpoint ID
         }else{
             _modelName = it->second;
+            // 如果传入的名字是友好名称，则映射到 Endpoint ID
+            if(_modelName == "doubao-seed-2-0-mini-260215") {
+                _modelName = "ep-20260503144004-mgrgn";
+            }
         }
 
         _isAvailable = true;
@@ -49,7 +53,8 @@ namespace ai_chat_sdk{
 
     // 获取模型名称
     std::string DouBaoProvider::getModelName() const{
-        return _modelName;
+        // 外部（如前端）看到的应该是友好名称
+        return "doubao-seed-2-0-mini-260215";
     }
 
     // 获取模型的描述信息
@@ -92,7 +97,7 @@ namespace ai_chat_sdk{
 
         // 3. 构造请求体
         Json::Value requestBody;
-        requestBody["model"] = getModelName();
+        requestBody["model"] = _modelName; // 内部 API 调用使用 Endpoint ID (_modelName)
         requestBody["messages"] = messageArray;
         requestBody["temperature"] = temperature;
         requestBody["max_tokens"] = maxTokens;
@@ -214,7 +219,7 @@ namespace ai_chat_sdk{
 
         // 3. 构造请求体
         Json::Value requestBody;
-        requestBody["model"] = getModelName();
+        requestBody["model"] = _modelName; // 内部 API 调用使用 Endpoint ID (_modelName)
         requestBody["messages"] = messageArray;
         requestBody["temperature"] = temperature;
         requestBody["max_tokens"] = maxTokens;
@@ -239,6 +244,7 @@ namespace ai_chat_sdk{
         // 设置请求头 (不要手动设置 Content-Type，让 httplib 通过 Post 参数设置)
         httplib::Headers headers = {
             {"Authorization", "Bearer " + _apiKey},
+            {"Content-Type", "application/json"},
             {"Accept", "text/event-stream"}
         };
 
@@ -336,7 +342,7 @@ namespace ai_chat_sdk{
         auto result = client.send(req);
 
         if(!result){
-            ERR("DouBaoProvider stream request failed");
+            ERR("DouBaoProvider stream request failed, error: {}", httplib::to_string(result.error()));
             return "";
         }
 

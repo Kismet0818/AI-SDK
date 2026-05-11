@@ -21,7 +21,7 @@ ChatServer::ChatServer(const ServerConfig& config) : _config(config) {
 
     //doubao-seed-2-0-mini-260215
     auto doubaoConfig = std::make_shared<ai_chat_sdk::APIConfig>();
-    doubaoConfig->_modelName = "ep-20260503144004-mgrgn";
+    doubaoConfig->_modelName = "doubao-seed-2-0-mini-260215";
     doubaoConfig->_apiKey = config.doubaoAPIKey;
     doubaoConfig->_temperature = config.temperature;
     doubaoConfig->_maxTokens = config.maxTokens;
@@ -74,7 +74,9 @@ bool ChatServer::start(){
     // 前端页面相关的所有文件都放在www目录下  注意：将来前端页面名称命名为index.html
     // 当用户在浏览器中输入：http://ip:port/index.html    http://ip:port也能访问index.html页面
     // 在httplib中，默认情况下，如果请求路径中只有ip和端口，httplib默认会使用index.html文件
-    _chatServer->set_mount_point("/", "./www");
+    if (!_chatServer->set_mount_point("/", "./www")) {
+        WARN("Failed to mount static directory './www'. Please ensure it exists in the execution directory.");
+    }
 
     // 为了不卡服务器云不卡主线程，服务器在单独的线程中运行
     _isRunning.store(true);
@@ -383,18 +385,22 @@ void ChatServer::handleSendMessageStreamRequest(const httplib::Request& request,
     response.set_header("Connection", "keep-alive");               // 保持连接，服务器不会关闭连接
     response.set_header("Access-Control-Allow-Origin", "*");        // 允许跨域请求
     response.set_header("Access-Control-Allow-Headers", "*");      // 允许所有请求头
+    response.set_header("Content-Type", "text/event-stream");      // 显式设置 SSE Content-Type
     
     // set_chunked_content_provider：告诉服务器，响应内从不是一次性发送的，而是分多次逐步发送给客户端，一般用在实时生成响应内容 或者 流式数据传输场景
     // 
     response.set_chunked_content_provider("text/event-stream", [this, sessionId, message](size_t offset, httplib::DataSink& dataSink)->bool{
 
         auto writeChunk = [&](const std::string& chunk, bool last){ 
+            // 如果 chunk 为空且不是最后一条，直接跳过
+            if (chunk.empty() && !last) return true;
+
             // 将chunk转换为SSE数据格式
-            // Json::valueToQuotedString: 对chunk进行Json转换，目的防止chunk中包含一些特殊字符来破坏数据格式，比如：在chunk中包含了两个连续的换行，就会影响SSE数据格式
-            std::string sseData = "data: " + Json::valueToQuotedString(chunk.c_str()) + "\n\n";
+            // 不再使用 Json::valueToQuotedString，因为它会给字符串加双引号并转义中文，导致乱码
+            std::string sseData = "data: " + chunk + "\n\n";
 
             // 需要将模型返回的结果 chunk 发送给客户单
-            dataSink.write(sseData.c_str(), sseData.size());  // 将数据写入响应流，即立即发送给客户单，该方法不会等待缓冲区满之后发送
+            dataSink.write(sseData.c_str(), sseData.size());
 
             // 处理结束标记
             if(last){
@@ -406,11 +412,6 @@ void ChatServer::handleSendMessageStreamRequest(const httplib::Request& request,
             }
             return true;
         };
-        
-        // 先给客户端发送一个空的数据块，避免客户端长时间的等待
-        if (!writeChunk("", false)) {
-            return false;
-        }
         
         // 发送消息流
         _chatSDK->sendMessageStream(sessionId, message, writeChunk);
@@ -441,21 +442,19 @@ void ChatServer::setHttpRoutes(){
         handleDeleteSessionRequest(request, response);
     });
 
-    // 处理获取历史消息请求
-     _chatServer->Get("/api/session/(.*)/history", [this](const httplib::Request& request, httplib::Response& response){
-        handleGetHistoryMessagesRequest(request, response);
+    // 处理发送消息请求-增量返回
+    _chatServer->Post("/api/message/async", [this](const httplib::Request& request, httplib::Response& response){
+        handleSendMessageStreamRequest(request, response);
     });
-
-
 
     // 处理发送消息请求-全量返回
     _chatServer->Post("/api/message", [this](const httplib::Request& request, httplib::Response& response){
         handleSendMessageRequest(request, response);
     });
 
-    // 处理发送消息请求-增量返回
-    _chatServer->Post("/api/message/async", [this](const httplib::Request& request, httplib::Response& response){
-        handleSendMessageStreamRequest(request, response);
+    // 处理获取历史消息请求
+     _chatServer->Get("/api/session/(.*)/history", [this](const httplib::Request& request, httplib::Response& response){
+        handleGetHistoryMessagesRequest(request, response);
     });
 }
 

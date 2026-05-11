@@ -190,18 +190,14 @@ std::vector<std::string> SessionManager::getSessionLists()const{
 bool SessionManager::deleteSession(const std::string& sessionId){
     _mutex.lock();
     auto it = _sessions.find(sessionId);
-    if(it == _sessions.end()){
-        _mutex.unlock();
-        return false;
+    if(it != _sessions.end()){
+        // 从内存中删除会话
+        _sessions.erase(it);
     }
-
-    // 从内存中删除会话
-    _sessions.erase(it);
     _mutex.unlock();
 
     // 从数据库中删除会话
-    _dataManager.deleteSession(sessionId);
-    return true;
+    return _dataManager.deleteSession(sessionId);
 }
 
 // 清空所有会话

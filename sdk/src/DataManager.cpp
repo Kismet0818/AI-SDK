@@ -19,6 +19,9 @@ DataManager::DataManager(const std::string& dbName)
     }
     INFO("打开数据库成功：{}", dbName);
 
+    // 启用外键约束，确保级联删除生效
+    executeSQL("PRAGMA foreign_keys = ON;");
+
     // 初始化数据库表 - 创建会话表和消息表
     if(!initDataBase()){
         sqlite3_close(_db);

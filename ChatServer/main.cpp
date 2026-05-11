@@ -20,9 +20,9 @@ DEFINE_int32(max_tokens, 2048, "最大token数");
 DEFINE_string(config_file, "./ChatServer.conf", "配置文件路径");
 // DEFINE_bool(version, false, "显示版本信息");
 // Ollama配置参数
-DEFINE_string(ollama_model_name, "", "Ollama模型名称");
-DEFINE_string(ollama_model_desc, "", "Ollama模型描述");
-DEFINE_string(ollama_endpoint, "", "Ollama API地址");
+DEFINE_string(ollama_model, "", "Ollama模型名称");
+DEFINE_string(ollama_model_desc, "本地推理模型", "Ollama模型描述");
+DEFINE_string(ollama_endpoint, "http://localhost:11434", "Ollama API地址");
 
 // 版本号
 const std::string VERSION = "1.0.0";
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
         config.doubaoAPIKey = getEnvVar("doubao_apikey");
         config.qwenAPIKey = getEnvVar("qwen_apikey");
         // 从命令行参数获取Ollama配置
-        config.ollamaModelName = FLAGS_ollama_model_name;
+        config.ollamaModelName = FLAGS_ollama_model;
         config.ollamaModelDesc = FLAGS_ollama_model_desc;
         config.ollamaEndpoint = FLAGS_ollama_endpoint;
 

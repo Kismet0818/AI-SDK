@@ -1,4 +1,5 @@
 build/
+!ChatServer/build/www/
 test/build/
 CMakeFiles/
 CMakeCache.txt
